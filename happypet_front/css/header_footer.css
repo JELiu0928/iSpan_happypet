@@ -20,7 +20,17 @@ header {
   background-color: #fff;
   line-height: 20px;
 }
-
+/* 購物車數量(紅圈) */
+header .nav_icon .cart_quantity{
+    bottom: 2px;
+    right: -2px;
+    font-size: .8rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: red;
+    color: #fff;
+}
 .nav-logo {
   max-height: 80px;
 }

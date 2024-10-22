@@ -4,9 +4,9 @@ if(!user){
     localStorage.removeItem("uid")
     localStorage.removeItem("cartQuantity")
 }else{
-    console.log('執行')
+    // console.log('執行')
     queryQuantity(user)
-    console.log('結束')
+    // console.log('結束')
 }
 // 更新購物車數量(紅點圖標數量)
 // function queryQuantity(){

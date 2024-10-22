@@ -127,11 +127,11 @@ button:hover,.btn:hover{
     background-color:#a2c5ba;
     color: #fff;
 }
-
-.page{
-    right: 200px;
-    top: 115px;
+.title{
+    display: flex;
+    align-items: center;
 }
+
 .page button{
     box-shadow: none;
 }
@@ -144,9 +144,4 @@ button:hover,.btn:hover{
 }
 .dropdown-item:hover, .dropdown-item:active{
     background-color: var(--color-phover);
-}
-@media (max-width:992px) {
-    .page{
-        top: 162px;
-    }
 }

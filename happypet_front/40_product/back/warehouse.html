@@ -54,11 +54,12 @@
                         <a href="" data-toggle="dropdown" class="dropdown-toggle" role="button" id="header_product"
                             data-bs-toggle="dropdown" aria-expanded="false">產品專區</a>
                         <ul class="dropdown-menu nav_drop" aria-labelledby="header_product">
-                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要內容</a></li>
+                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/detail_info.html" class="dropdown-item" id="product2">產品詳細資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/warehouse.html" class="dropdown-item" id="product3">產品入庫</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/on_shelves.html" class="dropdown-item" id="product4">上架中產品</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/remove_shelves.html" class="dropdown-item" id="product5">未上架產品</a></li>
+                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/all_product.html" class="dropdown-item" id="product6">產品查詢</a></li>
                         </ul>
                     </li>
                     <li class="col-3 mt-3 mb-3 dropdown">
@@ -134,7 +135,6 @@
             // let {showMsg,message,setMessage} = React.useContext(myContext)
             let {showMsg,message,setMessage} = messageObj
             // console.log(showMsg)
-       
             return(
                 <React.Fragment>
                     <div className="modal fade " id="myModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -161,13 +161,49 @@
                 // $('#alertMsg').text(msg)
                 setMessage(msg)
             }
+            // 查詢料號
             function queryProduct(){
                 setQuerying(true)
                 let pdWarehouseFormData = new FormData(document.getElementById('pdWarehouse'));
-                pdWarehouseFormData.append('action', 'fetch');
+                // pdWarehouseFormData.append('action', 'fetch');
                 console.log('pdWarehouseFormData',pdWarehouseFormData)
                 console.log('productID.value',productID.value)
-                fetch(`http://localhost/happypet/happypet_back/public/api/product_back/warehouse `,{
+                $.ajax({
+                    url:'http://localhost/happypet/happypet_back/public/api/product_back/warehouse/show',
+                    method:'post',
+                    data:pdWarehouseFormData,
+                    processData: false,  
+                    contentType: false, //默認是application / x-www-form-urlencoded，讓jQuery不會自動添加或修改Content-Type
+                }).done((res)=>{
+                    // success: function(res) {
+                        console.log(res);
+                        setQuerying(false);
+                        res.full_name ? setProductName(res.full_name) : setProductName(res.error)
+                    // }
+                }).fail((e)=> console.log(e))
+                // fetch(`http://localhost/happypet/happypet_back/public/api/product_back/warehouse`,{
+                //     method:'post',
+                //     body:pdWarehouseFormData
+                // })
+                // .then(response=>{
+                //     return response.json()
+                // })
+                // .then(data=>{
+                //     setQuerying(false);
+                //     console.log('我是data',data)
+                //     // data.full_name ? pdName.innerText = data.full_name :  pdName.innerText = data.error;
+                //     data.full_name ? setProductName(data.full_name) : setProductName(data.error);
+                    
+                // })
+            }
+            let datObj = new Date()
+            let [dateFormat,setDateFormat] = React.useState(`${ datObj.getFullYear() }/${ (datObj.getMonth()+1).toString().padStart(2,0) }/${ (datObj.getDate()).toString().padStart(2,0) }`)
+            function addStockQuantity(event){
+                event.preventDefault();
+                let pdWarehouseFormData = new FormData(document.getElementById('pdWarehouse'));
+                // pdWarehouseFormData.append('action', 'insert');
+                // fetch('http://localhost/testpet/public/api/product_back/warehouse',{
+                fetch('http://localhost/happypet/happypet_back/public/api/product_back/warehouse/store',{
                     method:'post',
                     body:pdWarehouseFormData
                 })
@@ -175,43 +211,17 @@
                     return response.json()
                 })
                 .then(data=>{
-                    setQuerying(false);
-                    console.log('我是data',data)
-                    // data.full_name ? pdName.innerText = data.full_name :  pdName.innerText = data.error;
-                    data.full_name ? setProductName(data.full_name) : setProductName(data.error);
-                    
+                    if (data.message) {
+                        console.log(data.message);
+                        showMsg(data.message)
+                        $('input').each((_,elem)=>{
+                            elem.value = ''
+                        })
+                        setProductName('')
+                    } else if (data.error) {
+                        showMsg(data.error)
+                    }
                 })
-            }
-            let datObj = new Date()
-            let [dateFormat,setDateFormat] = React.useState(`${ datObj.getFullYear() }/${ (datObj.getMonth()+1).toString().padStart(2,0) }/${ (datObj.getDate()).toString().padStart(2,0) }`)
-            function addStockQuantity(event){
-               
-                    event.preventDefault();
-                    let pdWarehouseFormData = new FormData(document.getElementById('pdWarehouse'));
-                    pdWarehouseFormData.append('action', 'insert');
-                    // fetch('http://localhost/testpet/public/api/product_back/warehouse',{
-                    fetch('http://localhost/happypet/happypet_back/public/api/product_back/warehouse',{
-                        method:'post',
-                        body:pdWarehouseFormData
-                    })
-                    .then(response=>{
-                        return response.json()
-                    })
-                    .then(data=>{
-                        if (data.message) {
-                            console.log(data.message);
-                            showMsg(data.message)
-                            $('input').each((_,elem)=>{
-                                elem.value = ''
-                            })
-                            setProductName('')
-                            setTimeout(()=>{
-                                // location.reload()// 刷新頁面
-                            },1500)
-                        } else if (data.error) {
-                            showMsg(data.error)
-                        }
-                    })
                 
             }
             return(

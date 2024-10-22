@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>info</title>
+    <title>產品主要資訊</title>
     <!-- React -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -58,11 +58,13 @@
                         <a href="" data-toggle="dropdown" class="dropdown-toggle" role="button" id="header_product"
                             data-bs-toggle="dropdown" aria-expanded="false">產品專區</a>
                         <ul class="dropdown-menu nav_drop" aria-labelledby="header_product">
-                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要內容</a></li>
+                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/detail_info.html" class="dropdown-item" id="product2">產品詳細資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/warehouse.html" class="dropdown-item" id="product3">產品入庫</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/on_shelves.html" class="dropdown-item" id="product4">上架中產品</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/remove_shelves.html" class="dropdown-item" id="product5">未上架產品</a></li>
+                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/all_product.html" class="dropdown-item" id="product6">產品查詢</a></li>
+                        
                         </ul>
                     </li>
                     <li class="col-3 mt-3 mb-3 dropdown">
@@ -81,12 +83,14 @@
    
     <!--  ---------------------- 不可以改 ---------------------- -->
     <div class="container-md  py-3 px-5">
-        <h2 class="m-0 py-3 d-inline-block me-auto" id="maininfoTitle">產品主要資訊(新增)</h2>
-        <span class="ms-5 page position-absolute">
-            切換頁面：&nbsp;&nbsp;
-            <button id="insertPage">新增</button>
-            <button id="updatePage" class=" ms-2" >修改</button>
-        </span>
+        <div class="title">
+            <h2 class="m-0 py-3 d-inline-block me-auto" id="maininfoTitle">產品主要資訊(新增)</h2>
+            <span class="ms-5 page ">
+                切換頁面：&nbsp;&nbsp;
+                <button id="insertPage">新增</button>
+                <button id="updatePage" class=" ms-2" >修改</button>
+            </span>
+        </div>
         <form id="pdInfo" data-type="insert"  enctype="multipart/form-data" class="position-relative">
             <table class="table table-striped align-middle">
                 <tbody>

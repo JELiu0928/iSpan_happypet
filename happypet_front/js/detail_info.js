@@ -1,16 +1,10 @@
    // window.addEventListener('DOMContentLoaded',function(){
 
-   window.onload = ()=>{
-    let myModal = document.getElementById('myModal')
-    let myInput = document.getElementById('myInput')
-
-    // myModal.addEventListener('shown.bs.modal', function () {
-    //     myInput.focus()
-    // })
-    function showMsg(msg){
-        $('#myModal').modal('show')
-        $('#alertMsg').text(msg)
-    }
+    window.onload = ()=>{
+        function showMsg(msg){
+            $('#myModal').modal('show')
+            $('#alertMsg').text(msg)
+        }
 
     let pdSeries = document.querySelector('[name="pdSeries"]')
     // let seriesInputs = document.querySelectorAll('input.seriesNum')
@@ -59,8 +53,8 @@
             headers:{
                 'Content-Type': 'application/json'
             },
-            body:JSON.stringify({pdSeries })
-            // body:formData
+            body:JSON.stringify({pdSeries})
+
         })
         .then(response=>{
             // console.log(response)
@@ -83,14 +77,6 @@
             }else{
                 pdName.value = dataObj.series_name
             }
-
-            // console.log('obj.name型態',typeof obj.name)
-            
-         
-            // $('input.fullPdID').each(function(index,fullInput){
-            // // fullPdIDInputs.forEach(fullInput => {
-            //     fullInput.value = obj.id 
-            // });
             
         })
         .catch(error => {
@@ -185,7 +171,7 @@
             console.log('我是點選insert後的response',response)
             console.log('response的content-type',response.headers.get('content-type'))
             if (!response.ok) {
-                throw new Error('回應錯誤： ' + response.statusText);
+                throw new Error(`錯誤：${response.statusText}`);
             }
             return response.json()  
             // return response.text()  

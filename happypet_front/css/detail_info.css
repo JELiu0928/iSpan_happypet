@@ -128,3 +128,9 @@ i[class$="Btn"]:hover{
 .dropdown-item:hover, .dropdown-item:active{
     background-color: var(--color-phover);
 }
+
+.title{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}

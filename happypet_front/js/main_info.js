@@ -19,58 +19,58 @@
         $('.bi-x-circle-fill').click(()=>{
             $(".descriptionInfo").addClass('d-none');
         })
-        let pdinfoType = pdInfo.getAttribute('data-type');
+        let pdinfoType = $('#pdInfo').attr('data-type');
         console.log('pdinfoType',pdinfoType)
         $('#insertPage').addClass('active')
 
         insertPage.onclick = ()=>{
+            // history.pushState(state：物件(可以是空物件), title：通常是空字串, url：要改成的url);
+            // 查詢頁面過來會帶查詢參數，用原本頁面網址替換掉
+            history.pushState({},'',window.location.pathname)
+            console.log(window.location.pathname,'5555555555')
             $('#maininfoTitle').text('產品主要資訊(新增)')
             $('#updateBtn').addClass('d-none')
             $('#insertBtn').removeClass('d-none')
-            pdInfo.setAttribute('data-type','insert')
-            pdinfoType = pdInfo.getAttribute('data-type')
-
+            $('#pdInfo').attr('data-type', 'insert'); //setAttribute
+            pdinfoType = $('#pdInfo').attr('data-type'); //getAttribute
+            // pdInfo.setAttribute('data-type','insert')
+            // pdinfoType = pdInfo.getAttribute('data-type')
             console.log('pdinfoType',pdinfoType)
             $('#insertPage').addClass('active')
             $('#updatePage').removeClass('active')
             clearInput()
-            $('#pdSeries').val('')
-
 
         }
         updatePage.onclick = ()=>{
+            $('#pdSeries').val('')
             edit()
-            // showProduct()
-
         }
+        // 查詢產品，點選過來時
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode') 
+        console.log('urlParams',urlParams,'mode',mode)
         const seriesID = urlParams.get('id') 
         if (mode === 'edit' && seriesID) {
             console.log('mode裡',seriesID)
             edit()
             $('#pdSeries').val(seriesID)
             showProduct(seriesID)
-            console.log('mode裡pdSeries',pdSeries.innerText)
+            // console.log('mode裡pdSeries',pdSeries.innerText)
 
         }
-        // document.addEventListener('DOMContentLoaded', function() {
-            // console.log('DOM 已加載完成');
-            function edit(){
-                
-                // updatePage.onclick = ()=>{
-                $('#maininfoTitle').text('產品主要資訊(修改)')
-                $('#insertBtn').addClass('d-none')
-                $('#updateBtn').removeClass('d-none')
-                pdInfo.setAttribute('data-type','update')
-                pdinfoType = pdInfo.getAttribute('data-type')
-                $('#insertPage').removeClass('active')
-                $('#updatePage').addClass('active')
-                console.log('pdinfoType',pdinfoType)
-                $('#pdSeries').attr("placeholder", "請搜尋產品系列編號");
-                // }
-            }
-        // });
+     
+        function edit(){
+            $('#maininfoTitle').text('產品主要資訊(修改)')
+            $('#insertBtn').addClass('d-none')
+            $('#updateBtn').removeClass('d-none')
+            $('#pdInfo').attr('data-type','update')
+            pdinfoType = $('#pdInfo').attr('data-type')
+            $('#insertPage').removeClass('active')
+            $('#updatePage').addClass('active')
+            console.log('pdinfoType',pdinfoType)
+            $('#pdSeries').attr("placeholder", "請搜尋產品系列編號");
+        }
+
         function clearInput(){
             $('#categoryOptions').val('default')
             $('#pdName').val('')
@@ -83,132 +83,127 @@
 
         }
         // 查詢產品系列編號是否使用
-
         pdSeries.onchange = (event)=>{
-       
             console.log('pdSeries裡pdinfoType',pdinfoType)
             if(pdinfoType === 'insert'){
                 console.log('event.target.value',event.target.value)
                 // fetch(`http://localhost/testpet/public/api/product_back/info/select/${event.target.value}`,{
-                fetch(`http://localhost/happypet/happypet_back/public/api/product_back/info/select/${event.target.value}?pdinfoType=${pdinfoType}`,{
+                fetch(`http://localhost/happypet/happypet_back/public/api/product_back/info/check/${event.target.value}?pdinfoType=${pdinfoType}`,{
                     method:'get',
-                    // body:formData
                 })
                 .then(response=>{
-                    // console.log(response)
-                    // return response.json()
                     return response.json()
                 })
-                .then(({message,categories})=>{
-                // .then((dataa)=>{
-
-                    // console.log('dataa',dataa)
-                    // console.log('message = ',message.message)
-                    // let {message,data} = data
+                .then(({message})=>{
                     if (message != undefined) {
                         console.log('我是message.message')
                         showMsg(message.message)
                     }
                 })
-                console.log('我是if')
+                // console.log('我是if')
             }else{
-                console.log('我是else')
+                // console.log('我是else')
                 showProduct(event.target.value)
             }
 
         }
         function showProduct(seriesID){
-            fetch(`http://localhost/happypet/happypet_back/public/api/product_back/info/update/${seriesID}`,{
-                method:'post',
-                // body:formData
-            })
-            .then(response=>{
-                // console.log(response)
-                return response.json()
-            })
-            .then(({seriesProduct,message})=>{ 
-                // console.log('測試 = ',seriesProduct +"與message"+message)
-                // showOthersImgs.innerHTML = '';
-                // showDescImgs.innerHTML = '';
+            $.get(`http://localhost/happypet/happypet_back/public/api/product_back/info/show/${seriesID}`)
+            .done(({seriesProduct,message})=>{
                 clearInput()
-
-                // 如果系列編號不存在即顯示是訊息
+                // 如果系列編號不存在即顯示訊息
                 if(message){
                     // message ? showMsg(message): null ;
                     showMsg(message)
-                    // $('select').val('')
-                    // $('#pdName').val('')
-                    // $('#showCoverImg').html('');
-                    // $('#showOthersImgs').html('');
-                    // $('#showDescImgs').html('');
-                    // $('input[name^="description"]').each((_,elem)=>{
-                    //     $(elem).val('')
-                    // })
                     clearInput()
                     return
                 }
-
                 console.log('seriesProduct = ',seriesProduct)
                 seriesProduct.forEach((seriesPD)=>{
                     let {category_id,series_name,pic_category_id,...products} = seriesPD
 
-                    // console.log('data',data)
-                    // console.log('category_id',category_id)
-                    // console.log('series_name',series_name)
-                    // pdName.value = series_name
                     $('#pdName').val(series_name)
-
-                    // categoryOptions.value = category_id
                     $('#categoryOptions').val(category_id)
-                    // console.log('inpuuuuut',$('input[name^="description"]'))
                     $('input[name^="description"]').each((i,elem)=>{
+                        // console.log(i,'----------',elem)
+                        console.log(products,products["description1"])
                         descKey = `description${i+1}` 
-                        // console.log("seriesProduct[key]",products[descKey])
                         $(elem).val(products[descKey])
                     })
                     // console.log('pic_category_id',pic_category_id)
-                    // seriesProduct.forEach((elem,i)=>{
-                        // console.log('seriesProduct.elem',elem)
-                        
-                        switch (pic_category_id) {
-                            case 1:
-                                showCoverImg.innerHTML = `<img src="${seriesPD.img}">`
-                                break;
-                            case 2:
-                                showOthersImgs.innerHTML += `<img src="${seriesPD.img}">`
-                                break;
-                            case 3:
-                              
-                                showDescImgs.innerHTML += `<img src="${seriesPD.img}">`
-                                break;
-                        
-                            default:
-                                break;
-                        }
+                    switch (pic_category_id) {
+                        case 1:
+                            showCoverImg.innerHTML = `<img src="${seriesPD.img}">`
+                            break;
+                        case 2:
+                            showOthersImgs.innerHTML += `<img src="${seriesPD.img}">`
+                            break;
+                        case 3:
+                            showDescImgs.innerHTML += `<img src="${seriesPD.img}">`
+                            break;
+                        default:
+                            break;
+                    }
                 })
             })
+            // fetch(`http://localhost/happypet/happypet_back/public/api/product_back/info/show/${seriesID}`,{
+            //     method:'post',
+            // })
+            // .then(response=>{
+            //     return response.json()
+            // })
+            // .then(({seriesProduct,message})=>{ 
+            //     clearInput()
+            //     // 如果系列編號不存在即顯示訊息
+            //     if(message){
+            //         // message ? showMsg(message): null ;
+            //         showMsg(message)
+            //         clearInput()
+            //         return
+            //     }
+            //     console.log('seriesProduct = ',seriesProduct)
+            //     seriesProduct.forEach((seriesPD)=>{
+            //         let {category_id,series_name,pic_category_id,...products} = seriesPD
+
+            //         $('#pdName').val(series_name)
+            //         $('#categoryOptions').val(category_id)
+            //         $('input[name^="description"]').each((i,elem)=>{
+            //             // console.log(i,'----------',elem)
+            //             console.log(products,products["description1"])
+            //             descKey = `description${i+1}` 
+            //             $(elem).val(products[descKey])
+            //         })
+            //         // console.log('pic_category_id',pic_category_id)
+            //         switch (pic_category_id) {
+            //             case 1:
+            //                 showCoverImg.innerHTML = `<img src="${seriesPD.img}">`
+            //                 break;
+            //             case 2:
+            //                 showOthersImgs.innerHTML += `<img src="${seriesPD.img}">`
+            //                 break;
+            //             case 3:
+            //                 showDescImgs.innerHTML += `<img src="${seriesPD.img}">`
+            //                 break;
+            //             default:
+            //                 break;
+            //         }
+            //     })
+            // })
         }
-        updateBtn.addEventListener('click', (event)=>{
+        // 修改
+        // updateBtn.addEventListener('click', (event)=>{
+        $("#updateBtn").click( (event)=>{
             event.preventDefault();
-            console.log('Update button clicked, preventing default form submission');
             let formData = new FormData(document.getElementById('pdInfo'));
-            for (let pair of formData.entries()) {
-                console.log('我是formdata',pair[0] + ': ' + pair[1]); 
-            }
-            fetch(`http://localhost/happypet/happypet_back/public/api/product_back/info/modify`,{
+            
+            fetch(`http://localhost/happypet/happypet_back/public/api/product_back/info/update`,{
                 method:'post',
                 body:formData,
-                // headers: {
-                //     'X-Requested-With': 'XMLHttpRequest', // 確保伺服器知道這是一個 AJAX 請求
-                // }
             })
             .then(response=>{
-                // console.log(response)
-                // return response.json()
                 return response.json()
             })
             .then((data)=>{
-                // console.log('data',data)
                 if (data.message) {
                     // console.log(data.message);
                     showMsg(data.message)
@@ -220,89 +215,87 @@
                     showMsg(data.error)
                 }
              })
+        // })
         })
 
-        coverimg.onchange = ()=>{
+        // 預覽圖片
+        $('#coverimg').change(()=>{
             let imgreader = new FileReader();
             console.log('imgreader----->',imgreader)
             console.log('imgreader----->',imgreader)
             imgreader.readAsDataURL(coverimg.files[0])
-            showCoverImg.innerHTML = ''
+            $('#showCoverImg').html('')
             imgreader.onload = (event)=>{
-                // console.log('eee',event) 
-                // src在event裡面的target的result
-                showCoverImg.innerHTML += `<img src="${event.target.result}">`
+                // showCoverImg.innerHTML += `<img src="${event.target.result}">`
+                $('#showCoverImg').append(`<img src="${event.target.result}">`)
             }
-           
-            // console.log('我是封面圖',descimgs.files[0])
-        }
-        
-        descimgs.onchange = ()=>{
+        })
+        $('#descimgs').change(()=>{
             // console.log('我是敘述圖',descimgs.files)
             let descriptionIMGs = Array.from(descimgs.files); // 轉換為陣列
             descriptionIMGs.forEach((img)=>{
                 // console.log('我是敘述圖單張',img)
                 let imgreader = new FileReader();
                 imgreader.readAsDataURL(img)
-                showDescImgs.innerHTML = ''
+                $('#showDescImgs').html('')
                 imgreader.onload = (event)=>{
-                    // console.log('eee',event) 
-                    // src在event裡面的target的result
-                    showDescImgs.innerHTML += `<img src="${event.target.result}">`
+                    $('#showDescImgs').append(`<img src="${event.target.result}">`)
                 }
             })
-            // console.log('我是封面圖',descimgs.files[0])
-        }
-        othersImgs.onchange = ()=>{
+        })
+        $('#othersImgs').change(()=>{
             // console.log('othersImgs.files---->',othersImgs.files)
             let othersAllIMGs = Array.from(othersImgs.files); // 轉換為陣列
             othersAllIMGs.forEach((img)=>{
                 let imgreader = new FileReader();
                 imgreader.readAsDataURL(img)
-                showOthersImgs.innerHTML = ''
+                $("#showOthersImgs").html('')
                 imgreader.onload = (event)=>{
-                    // console.log('eee',event) 
-                    // src在event裡面的target的result
-                    showOthersImgs.innerHTML += `<img src="${event.target.result}">`
+                    $("#showOthersImgs").append(`<img src="${event.target.result}">`)
                 }
             })
-            // console.log('我是封面圖',descimgs.files[0])
-        }
+        })
         
-        // 查詢option列出的類別
+        // 查詢 option 列出的類別
         // fetch('http://localhost/testpet/public/product_back/info/select',{
-        fetch('http://localhost/happypet/happypet_back/public/api/product_back/info/select',{
-                method:'get',
-        })
-        .then(response=>{
-            // console.log(response)
-            // return response.text()
-            return response.json()
-        })
-        .then(({categories})=>{
-        // .then((aaa)=>{
-            // alert(data)
-            console.log('我是options',categories)
-            // console.log('我是options',aaa)
+        $.get('http://localhost/happypet/happypet_back/public/api/product_back/info/categories',({categories})=>{
+            // console.log('=========>',res)
             categories.forEach((category) => {   //多張照片遍歷
-                // console.log('category = ', category)
-                // console.log('我是index',index)
                 // console.log(category.split('-'))  //分割後取英文([0])
                 categoryOptions.innerHTML += `<option value="${category.split('-')[0]}">${category}</option>`
             });
         })
+        // fetch('http://localhost/happypet/happypet_back/public/api/product_back/info/categories',{
+        //     method:'get',
+        // })
+        // .then(response=>{
+        //     return response.json()
+        // })
+        // .then(({categories})=>{
+        //     console.log('我是options',categories)  
+        //     categories.forEach((category) => {   //多張照片遍歷 
+        //         // console.log(category.split('-'))  //分割後取英文([0])
+        //         categoryOptions.innerHTML += `<option value="${category.split('-')[0]}">${category}</option>`
+        //     });
+        // })
 
 
-        // insertBtn.onclick = (event)=>{
         insertBtn.addEventListener('click', (event)=>{
-
             event.preventDefault();
             let formData = new FormData(document.getElementById('pdInfo'));
-            formData.append('action', 'insert');
+            // formData.append('action', 'insert');
             console.log('formdata',formData)
             formData.forEach((value, key) => {
                 console.log('formdata',key, value);
             });
+            if(categoryOptions.value === 'default'){
+                alert('請選擇類別')
+            }
+            if($('#pdSeries').value === ''){
+                alert('系列編號未填寫')
+            }
+            // console.log('=======>',)
+
             fetch('http://localhost/happypet/happypet_back/public/api/product_back/info/create',{
                 method:'post',
                 body:formData
@@ -311,19 +304,17 @@
                 if (!response.ok) {
                     throw new Error(`伺服器錯誤: ${response.statusText}`);
                 }
-                // console.log(response)
-                // return response.text()
                 return response.json()
             })
             .then(data=>{
                 // alert(data)
+                
                 console.log('我是data1',data)
                 console.log('我是data1',data.message)
                 if (data.message) {
                     console.log(data.message);
                     showMsg(data.message)
                     setTimeout(()=>{
-                        console.log('成功與否')
                         location.reload()// 刷新頁面
                     },2000)
                 } else if (data.error) {
@@ -332,6 +323,5 @@
                 }
           
             })
-        // }
         })
     }

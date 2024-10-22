@@ -58,11 +58,13 @@
                         <a href="" data-toggle="dropdown" class="dropdown-toggle" role="button" id="header_product"
                             data-bs-toggle="dropdown" aria-expanded="false">產品專區</a>
                         <ul class="dropdown-menu nav_drop" aria-labelledby="header_product">
-                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要內容</a></li>
+                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/detail_info.html" class="dropdown-item" id="product2">產品詳細資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/warehouse.html" class="dropdown-item" id="product3">產品入庫</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/on_shelves.html" class="dropdown-item" id="product4">上架中產品</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/remove_shelves.html" class="dropdown-item" id="product5">未上架產品</a></li>
+                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/all_product.html" class="dropdown-item" id="product6">產品查詢</a></li>
+                        
                         </ul>
                     </li>
                     <li class="col-3 mt-3 mb-3 dropdown">
@@ -119,7 +121,7 @@
             // console.log('我是系列編號',pdSeries)
             // console.log('我是系列名稱',productObj)
             React.useEffect(() => {
-                console.log('pdSeries 狀態變化:', pdSeries);
+                console.log('pdSeries==>', pdSeries);
                 return ()=>{
                     setProductArr([])
                     setRows([{ id: '', fullPdID: '',flavor:'',weight:'',size:'',color:'',price:'',GTIN:'' }])
@@ -140,7 +142,7 @@
                     // console.log('map val',value)
                     // console.log('map index',index)
                     // console.log('map i',i)
-                    // 如果該行index = map的index(檢查是否是更新的那行) ，就更新fullPdID，不是就維持
+                    // 如果該行index = map的index(檢查是否是更新的那行)，是就更新fullPdID，不是就維持
                     return index === i ? {...row,fullPdID : pdSeries + value } : row
                 })
                 setRows(updateRows)
@@ -176,7 +178,7 @@
                             </tr>
                         </thead>
                         <tbody id="newItem">
-                            {   myPdType == 'insert' ? (rows.map((row,index)=> (
+                            { myPdType == 'insert' ? (rows.map((row,index)=> (
                                 <tr className="pd_row" key={row.id}>
                                     <td className="pd_id_area position-relative"> 
                                         <button type="button" className="position-absolute deleteBtn" onClick={()=>{removeRow(index)}}><i className="bi bi-x"></i></button>
@@ -214,7 +216,7 @@
             )
         }//style={{ left:"-80px",top:"250px"}}
         // function TitieAndAddbtn({clearInput}){
-            function TitieAndAddbtn(){
+        function TitieAndAddbtn(){
             let detailinfoTitle = React.useRef()
             // let [myPdType,setMyPdType] = React.useState('insert');
             let {myPdType,setMyPdType,clearInput,pdSeries,setPdSeries,seriesName,setSeriesName,rows,setRows} = React.useContext(myContext)
@@ -238,7 +240,6 @@
                 setMyPdType('insert')
                 // console.log('Insert_myPdType',myPdType)
                 // setRows([{ id: 0, fullPdID: '' }])
-
                 clearInput();
 
             }
@@ -255,12 +256,14 @@
 
             return(
                 <React.Fragment>
-                    <h2 className="m-0 py-3 " ref={detailinfoTitle}>產品詳細資訊(新增)</h2>
-                    <span className="ms-5 " style={{position:"absolute",right:'0',top:'40px' }}>
-                        切換頁面：&nbsp;&nbsp;
-                        <button className="pagebtn" onClick={handleInsertPageClick} style={{backgroundColor: myPdType == 'insert' ? '#e4b0b4':'#90b9ab'}}>新增</button>
-                        <button className="pagebtn ms-2" onClick={handleUpdatePageClick} style={{backgroundColor: myPdType == 'update' ? '#e4b0b4':'#90b9ab'}}>修改</button>
-                    </span>
+                    <div className="title">
+                        <h2 className="m-0 py-3 " ref={detailinfoTitle}>產品詳細資訊(新增)</h2>
+                        <span className="ms-5 ">
+                            切換頁面：&nbsp;&nbsp;
+                            <button className="pagebtn" onClick={handleInsertPageClick} style={{backgroundColor: myPdType == 'insert' ? '#e4b0b4':'#90b9ab'}}>新增</button>
+                            <button className="pagebtn ms-2" onClick={handleUpdatePageClick} style={{backgroundColor: myPdType == 'update' ? '#e4b0b4':'#90b9ab'}}>修改</button>
+                        </span>
+                    </div>
                 </React.Fragment>
             )
         }
@@ -284,7 +287,6 @@
                     setPdSeries(seriesID)
                     console.log('mode裡',seriesID)
                     // querySeriesID(pdSeries)
-                    
                 }
             }, [setPdSeries]);
             React.useEffect(() => {
@@ -424,7 +426,7 @@
             function updateTable(){
                 if(myPdType == 'update'){
                     console.log('我是update修正產品系列 ')
-                    fetch('http://localhost/happypet/happypet_back/public/api/product_back/detail/modify',{
+                    fetch('http://localhost/happypet/happypet_back/public/api/product_back/detail/update',{
                         method:'post',
                         body: new FormData(document.getElementById('myPd'))
                     })
@@ -438,7 +440,7 @@
                     .then(data => {
                         console.log('data',data)
                         if (data.message) {
-                            console.log(data.message);
+                            // console.log(data.message);
                             showMsg(data.message)
 
                             setTimeout(()=>{

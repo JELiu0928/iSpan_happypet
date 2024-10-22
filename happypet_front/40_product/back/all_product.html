@@ -54,7 +54,7 @@
                         <a href="" data-toggle="dropdown" class="dropdown-toggle" role="button" id="header_product"
                             data-bs-toggle="dropdown" aria-expanded="false">產品專區</a>
                         <ul class="dropdown-menu nav_drop" aria-labelledby="header_product">
-                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要內容</a></li>
+                            <li><a href="http://localhost/happypet/happypet_front/40_product/back/main_info.html" class="dropdown-item" id="product1">產品主要資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/detail_info.html" class="dropdown-item" id="product2">產品詳細資訊</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/warehouse.html" class="dropdown-item" id="product3">產品入庫</a></li>
                             <li><a href="http://localhost/happypet/happypet_front/40_product/back/on_shelves.html" class="dropdown-item" id="product4">上架中產品</a></li>
@@ -123,7 +123,7 @@
                                         <i className="bi bi-pen"></i>
                                     </a></td>
                                     <td><a href={`http://localhost/happypet/happypet_front/40_product/back/detail_info.html?mode=edit&id=${product_id.substr(0, 11)}`}>
-                                        <i class="bi bi-brush"></i>
+                                        <i className="bi bi-brush"></i>
                                     </a></td>
                                 </tr>)
                             })
@@ -138,10 +138,10 @@
         function SearchAllProductApp() {
             let [keyWord, setKeyWord] = React.useState('');
             let [product, setProduct] = React.useState([]);
-            let searchResult = React.useRef()
             React.useEffect(()=>{
                 queryKeyWord()
             },[])
+            // 預設空字串可以查出全部產品
             function queryKeyWord(keyWord = '') {
                 // let productName = $('[name="productName"]').val();
                 // console.log(productName);
@@ -152,16 +152,15 @@
                     }
                 )
                 .then((response) => response.json())
-                .then((allproducts) => {
-                    console.log('allproducts',allproducts)
-                    setProduct(allproducts) 
-                    console.log('product',product)
+                .then((filterProduct) => {
+                    // console.log('filterProduct',filterProduct)
+                    setProduct(filterProduct) 
                     
                 });
             }
             return (
                 <React.Fragment>
-                    <div class="container">
+                    <div className="container">
                         <h2 className="m-0 py-3">產品查詢</h2>
                         <QueryArea keyWordObj={{keyWord,setKeyWord,queryKeyWord}}/>
                         <ShowResult productObj={{product, setProduct}}/>

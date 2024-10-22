@@ -6,13 +6,12 @@ window.onload = ()=>{
     let currentPage = document.querySelector('li[aria-current="page"]')
     let flavorOrColorArea = document.querySelector('.flavorOrColorArea')
     let weightOrSizeArea = document.querySelector('.weightOrSizeArea')
-    let thumbnail = document.querySelector('.thumbnail')
-    let pdDescImg = document.querySelector('.pdDescImg')
+    // let thumbnail = document.querySelector('.thumbnail')
+    // let pdDescImg = document.querySelector('.pdDescImg')
     // let choose = document.querySelectorAll('.choose')
 
     let myModal = document.getElementById('myModal')
     let myInput = document.getElementById('myInput')
-
     myModal.addEventListener('shown.bs.modal', function () {
         myInput.focus()
     })
@@ -22,28 +21,22 @@ window.onload = ()=>{
     }
 
     let pdNavbar = document.querySelector('.pd_navbar');
-    // let logo = document.querySelector('.logo')
-    window.addEventListener('resize',function(){
-        
-        if (window.innerWidth <= 1198) {
-            pdNavbar.style.top = "148px"
-        } else {
-            pdNavbar.style.top = "96px"
-        }
-        // console.log('window.innerWidth',window.innerWidth)
-    })
+
+    widthCheck() //初始化
+    function widthCheck(){
+        window.innerWidth <= 1198 ? pdNavbar.style.top = "148px" :  pdNavbar.style.top = "96px"
+        // 監聽window寬度
+        window.addEventListener('resize',function(){
+            window.innerWidth <= 1198 ? pdNavbar.style.top = "148px" :  pdNavbar.style.top = "96px"
+        })
+    }
+   
     // ------------------------------------------
-    // url測試
+    // 獲取url 參數
     let urlParams  = new URLSearchParams(window.location.search)
     // console.log('window',window.location.search)
     let categoryID = urlParams.get('category') 
     let seriesID = urlParams.get('sID') 
-    // console.log(categoryID,seriesID)
-
-
-
-
-    // ------------------------------------------
 
     // console.log('flavorOrColorArea',flavorOrColorArea.className)
     // fetch(`http://localhost/testpet/public/product/ds/96`,{
@@ -53,7 +46,6 @@ window.onload = ()=>{
         method:'get',
     })
     .then(response=>{
-        // console.log(response)
         // return response.text()   //圖片
         return response.json()  //陣列
     })
@@ -61,30 +53,30 @@ window.onload = ()=>{
         // console.log(data)
         let {products,productImgs,categoryName} = data
         // console.log('第一個',products)
+        // console.log('第一個',productImgs)
+        // console.log('第一個',categoryName)
 
         // 過濾下架產品
         // products = products.filter(product => product.status === 't');
         // products = products.filter(product => product.status == 1);
         products = products.filter(product => product.shelves_status == 1);
+        // console.log('/product/${categoryID}/${seriesID}',products)
         if (products.length === 0) {
-            // 如果沒有上架產品，顯示提示或進行其他處理
-            alert('產品準備中');
+            alert('產品準備中');    
             return;
         }
 
-        // console.log('第二個',products)
-
         // console.log(productImgs)
-        $('.QuantityArea').removeClass('d-none')
-        $('.QuantityArea').addClass('d-flex')
+        $('.QuantityArea').toggleClass('d-none d-flex')
         $('.breadcrumb').removeClass("d-none")
         $('.choose').removeClass("d-none")
     
+    
         // 取系列名到標題、麵包屑
-        // console.log($('.breadcrumb').find('a').eq(1).text())
+        // console.log('麵包屑 =>>',$('.breadcrumb').find('a'))
         // console.log($('.breadcrumb').find('a')[1].innerText)
         currentPage.innerText = products[0].series_name
-        $('.breadcrumb').find('a').eq(1).text(categoryName)
+        $('.breadcrumb').find('a').eq(1).text(categoryName) //分類
         goodsTitle.innerText = products[0].series_name
         goodsTitle.setAttribute('data-categoryID',products[0].category_id)
         mainImg.src = products[0].cover_img
@@ -94,144 +86,123 @@ window.onload = ()=>{
         productImgs.forEach((productImg,i)=>{
             let {pic_category_id} = productImg
             if(pic_category_id == 1 || pic_category_id == 2){
-                // goodImgArr.push(productImg.img)
-                let pdImg = document.createElement('img')
-                pdImg.setAttribute('src',productImg.img) 
-                thumbnail.appendChild(pdImg)
-                pdImg.onclick = ()=>{
-                    // console.log('pdImg = ',pdImg)
-                    mainImg.src = pdImg.src
-                }
-                // thumbnail.innerHTML += `<img src="${productImg.img}" alt="">`
-
+                let pdImg = $('<img>').prop('src',productImg.img)
+                $('.thumbnail').append(pdImg)
+                pdImg.click(function(){
+                    $("#main_img").prop('src',$(this).attr('src'))  
+                })
+                
             }else{
-                pdDescImg.innerHTML += `<img class="col-12" src="${productImg.img}" alt="">`
+                $('.pdDescImg').append(`<img class="col-12" src="${productImg.img}" alt="">`)
+                // pdDescImg.innerHTML += `<img class="col-12" src="${productImg.img}" alt="">`
             }
         })
         //  數量增減
         let currentQuantity = ''
-        plusBtn.onclick = ()=>{
+        $('#plusBtn').on('click',()=>{
             currentQuantity = parseInt(pdQuantity.value) + 1
             pdQuantity.value = currentQuantity
-            // console.log(pdQuantity.value)
-        }
-        minusBtn.onclick = ()=>{
+        })
+        $('#minusBtn').on('click',()=>{
             currentQuantity = parseInt(pdQuantity.value) -1
             pdQuantity.value = currentQuantity
-            pdQuantity.value >= 1 || (pdQuantity.value = 1)  
+            pdQuantity.value >= 1 || (pdQuantity.value = 1) 
             // console.log(pdQuantity.value)
-        }
+
+        })
+        // plusBtn.onclick = ()=>{
+        //     currentQuantity = parseInt(pdQuantity.value) + 1
+        //     pdQuantity.value = currentQuantity
+        //     // console.log(pdQuantity.value)
+        // }
+        // minusBtn.onclick = ()=>{
+        //     currentQuantity = parseInt(pdQuantity.value) -1
+        //     pdQuantity.value = currentQuantity
+        //     pdQuantity.value >= 1 || (pdQuantity.value = 1)  
+        //     // console.log(pdQuantity.value)
+        // }
         
+        // 敘述取出放入Set => 轉Array => forEach
         let descriptionSet = new Set()
-        // console.log('productsssssssss',products)
         products.forEach((product) => {
-            // console.log(product)
+            // console.log('descriptionSet',product)
             for(let i = 1; i <= 5 ; i++){
                 let key = `description${i}`
                 if(key.startsWith('description')){ 
                     descriptionSet.add(product[key])
                 }
-                
             }
-            // let {flavor,color,weight,size} = product
-            // console.log('color',color)
         });
-
+        console.log('descriptionSet',descriptionSet)
         let descriptionArr = Array.from(descriptionSet)
         // console.log(descriptionArr)
         descriptionArr.forEach((description)=>{
             // console.log(description)
-            let descriptionli = document.createElement('li')
-            descriptionli.innerText = description
-            goodsDescription.appendChild(descriptionli)
-            
+            // let descriptionli = document.createElement('li')
+            // descriptionli.innerText = description
+            // goodsDescription.appendChild(descriptionli)
+            let descriptionli = $('<li>').text(description)
+            $("#goods_description").append(descriptionli)
         })
 
-        // console.log('SellingProduct',SellingProducts)
         // 根據取的資料變成選項按鈕
         // let flavorArr = products.reduce(function(arr,{flavor,...items}){
+        // arr拿來儲存結果 {flavor}：取出products中每個flavor
         let flavorArr = products.reduce(function(arr,{flavor}){
-        // let flavorArr = SellingProducts.reduce(function(arr,{flavor}){
             // console.log('arr',arr)
             // return arr.indexOf(flavor) == -1 ? [...arr,flavor] : arr
             if (flavor && arr.indexOf(flavor) == -1){
                 arr.push(flavor);
             } 
-            return arr
+            return arr //用來下次迭代
         },[])
-        // let colorArr = products.reduce(function(arr,{color,...items}){
-
+        // console.log('flavorArr',flavorArr)
         
         let styleArr = products.reduce(function(arr,{style}){
-        // let colorArr = SellingProducts.reduce(function(arr,{color}){
-            // return arr.indexOf(color) == -1 ? [...arr,color] : arr
             if (style && arr.indexOf(style) == -1){
                 arr.push(style);
             }
             return arr
         },[])
-        // let weightArr = products.reduce(function(arr,{weight,...items}){
         let weightArr = products.reduce(function(arr,{weight}){
-        // let weightArr = SellingProducts.reduce(function(arr,{weight}){
-            // return arr.indexOf(weight) == -1 ? [...arr,weight] : arr
             if (weight && arr.indexOf(weight) == -1){
                 arr.push(weight);
             }
             return arr
         },[])
-        // let sizeArr = products.reduce(function(arr,{size,...items}){
         let sizeArr = products.reduce(function(arr,{size}){
-        // let sizeArr = SellingProducts.reduce(function(arr,{size}){
-            // return arr.indexOf(size) == -1 ? [...arr,size] : arr
             if (size && arr.indexOf(size) == -1){
                 arr.push(size);
             }
             return arr
         },[])
-        // console.log('flavorArr',flavorArr)
-        // console.log('colorArr',colorArr)  //要改款式!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // console.log('weightArr',weightArr)
-        // console.log("sizeArr",sizeArr)
-        // let str = "flavorArr"
         
-        // console.log('flavorArr',flavorArr)
 
         if(flavorArr.length > 0){
             traverseArray(flavorArr,flavorOrColorArea,"flavor")
         }else if(styleArr.length > 0){
-            // traverseArray(colorArr,flavorOrColorArea,"color")
             traverseArray(styleArr,flavorOrColorArea,"style")
         }
-
         if(weightArr.length > 0){
             traverseArray(weightArr,weightOrSizeArea,"weight")
         }else if(sizeArr.length > 0){
             traverseArray(sizeArr,weightOrSizeArea,"size")
         }
 
-        
+        // 新增選擇按鈕( 口味、款式 | 淨重、尺寸 )
+        function traverseArray(arr,area,type){
+            arr.forEach((item,i)=>{
+                area.innerHTML += ` 
+                    <input type="radio" class="d-none" id="${area.className}${i}" class="flavorOrColor" name="${type}" value="${item}" >
+                    <label for="${area.className}${i}">${item}</label>
+                `
+            })
+        }
         
         let productPrice = document.querySelector('#price span')
-        // let categoryID = goodsTitle.getAttribute('data-categoryid')
-
         let flavorOrColor;
         let weightOrSize;
-        // console.log('categoryID',categoryID)
-        // flavorOrColorInputs[0].setAttribute('checked',true)
-        // weightOrSizeInputs[0].setAttribute('checked',true)
 
-
-        // ----------------------------------------------------------------------------------------------
-            
-            // console.log('我是input',flavorOrColorInputs[0])
-            // console.log('我是products',products)
-            // console.log('被選中的',document.querySelector('.flavorOrColorArea input[type="radio"]:checked'))
-            // flavorOrColorInputs.forEach((input)=>{
-            //     input.addEventListener('change',function(){
-            //         console.log('監聽input',input.value)
-            //     })
-            // })
-            
         if(categoryID == 'ds' || categoryID == 'cs'){
             // flavorOrColor = 'color'
             flavorOrColor = 'style'
@@ -246,48 +217,34 @@ window.onload = ()=>{
             
         });
         
-        
-    //    
-        
-       
-        // ----------------------------------------------------------------------------------------------
-        // 新增選擇按鈕( 口味、款式 | 淨重、尺寸 )
-        function traverseArray(arr,area,type){
-            arr.forEach((item,i)=>{
-                area.innerHTML += ` 
-                    <input type="radio" class="d-none" id="${area.className}${i}" class="flavorOrColor" name="${type}" value="${item}" >
-                    <label for="${area.className}${i}">${item}</label>
-                `
-            })
-        }
-       
         // 取得產品資訊後新增購物車
-        function getProductInfo(user,poductID,quantity){
+        function getProductInfo(user,productID,quantity){
             let addCartText = document.querySelector('#add_cart p')
             let addCartIcon = document.querySelector('#add_cart i.bi-cart-fill')
             let addCartCheckIcon = document.querySelector('#add_cart i.bi-cart-check-fill')
 
-            // console.log('fn裡的poductID',poductID)
+            // console.log('fn裡的productID',productID)
             // console.log('fn裡的quantity',quantity)
-            if(!poductID || !quantity){
-                // console.log('尚未選擇產品')
+            if(!productID || !quantity){
+                console.log('尚未選擇產品',productID,quantity)
                 showMsg('尚未選擇產品')
                 setTimeout(() => {
                     $('#myModal').modal('hide')
                 }, 1500);
-
             }else{
                 addCartText.style.opacity = "0"
                 addCartIcon.style.opacity = "1"
-                console.log('我是user',user,'我是poductID',poductID,'我是數量',quantity)
-                fetch(`http://localhost/happypet/happypet_back/public/api/product/insert/${user}/${poductID}/${quantity}`,{
-                // fetch(`http://localhost/happypet/happypet_back/public/api/product/insert/${poductID}/${quantity}`,{
+                console.log('我是user',user,'我是productID',productID,'我是數量',quantity)
+                // fetch(`http://localhost/happypet/happypet_back/public/api/product/insert/${user}/${productID}/${quantity}`,{
+                fetch(`http://localhost/happypet/happypet_back/public/api/productcart/${user}/${productID}/${quantity}`,{
+                // fetch(`http://localhost/happypet/happypet_back/public/api/product/insert/${productID}/${quantity}`,{
                     method:'get'
                 })
                 .then(response=>response.text())
                 .then(rows =>{
-                    // console.log('插入資料',rows )
-                    if(rows > 0 ){
+                    console.log('插入資料',rows )
+                    if(rows || rows > 0 ){
+                        // console.log('執行動畫======',rows )
                         setTimeout(() => {
                             addCartIcon.style.opacity = "0"
                             addCartCheckIcon.style.opacity = "1"
@@ -297,12 +254,11 @@ window.onload = ()=>{
                             addCartText.style.opacity = "1"
                         }, 2500);
                         queryQuantity(user)
-                    }else{
-                        $('#add_cart').html()
                     }
                 })
             }
         }
+
         console.log('id',localStorage.getItem("uid"))
         if(localStorage.getItem("uid")){
             queryQuantity(localStorage.getItem("uid"))
@@ -314,32 +270,47 @@ window.onload = ()=>{
         // function queryQuantity(){
             // fetch('http://localhost/happypet/happypet_back/public/api/productcart/1')
         function queryQuantity(user){
-            fetch(`http://localhost/happypet/happypet_back/public/api/productcart/${user}`)
-            .then(response=>response.text())
-            .then(quantity=>{
-                console.log('購物車quantity',quantity)
+            $.get(`http://localhost/happypet/happypet_back/public/api/productcart/${user}`)
+                .done((quantity)=>{
+                    console.log('done',quantity)
+                    if(!quantity || quantity == 0){
+                        // cartQuantity.style.display = 'none'
+                        $('.nav_icon .cart_quantity').addClass('d-none');
+                    }else{
+                        // cartQuantity.style.display = 'block'
+                        $('.nav_icon .cart_quantity').removeClass('d-none');
+                        $('.nav_icon .cart_quantity').text(quantity);
+                        localStorage.setItem("cartQuantity", quantity);
+                        // console.log("購物車quantity localStorage",localStorage.getItem("cartQuantity"))
+                    }
+                })
+            // fetch(`http://localhost/happypet/happypet_back/public/api/productcart/${user}`)
+            // .then(response=>response.text())
+            // .then(quantity=>{
+            //     console.log('購物車quantity',quantity)
 
-                if(!quantity || quantity == 0){
-                    // cartQuantity.style.display = 'none'
-                    $('.nav_icon .cart_quantity').addClass('d-none');
-                }else{
-                    // cartQuantity.style.display = 'block'
-                    $('.nav_icon .cart_quantity').removeClass('d-none');
-                    $('.nav_icon .cart_quantity').text(quantity);
-                    localStorage.setItem("cartQuantity", quantity);
-                    console.log("購物車quantity localStorage",localStorage.getItem("cartQuantity"))
-                    // cartQuantity.innerText = quantity
-                }
-            })
+            //     if(!quantity || quantity == 0){
+            //         // cartQuantity.style.display = 'none'
+            //         $('.nav_icon .cart_quantity').addClass('d-none');
+            //     }else{
+            //         // cartQuantity.style.display = 'block'
+            //         $('.nav_icon .cart_quantity').removeClass('d-none');
+            //         $('.nav_icon .cart_quantity').text(quantity);
+            //         localStorage.setItem("cartQuantity", quantity);
+            //         // console.log("購物車quantity localStorage",localStorage.getItem("cartQuantity"))
+            //     }
+            // })
         }
         // console.log(localStorage.getItem("cartQuantity"))
-
+        let productID;
         // 選擇按鈕後更新價格
         function checkInput(){
+            // 被選擇的按鈕
             let selectFlavorOrColor = document.querySelector('.flavorOrColorArea input[type="radio"]:checked')?.value
             let selectWeightOrSize = document.querySelector('.weightOrSizeArea input[type="radio"]:checked')?.value
-            // let selectedProduct = products.find(product=>{
+            // 被選擇的產品
             let selectedProduct = products.find(product=>{
+                console.log('selectedProduct的產品',product[flavorOrColor] === selectFlavorOrColor)
                 // console.log('product[flavorOrColor]',product[flavorOrColor])
                 // console.log('selectFlavorOrColor',selectFlavorOrColor)
                 // console.log('product[weightOrSize]',product[weightOrSize])
@@ -350,16 +321,17 @@ window.onload = ()=>{
                 // console.log('product[weightOrSize] === selectWeightOrSize', product[weightOrSize] === selectWeightOrSize)
                 return product[flavorOrColor] === selectFlavorOrColor && product[weightOrSize] === selectWeightOrSize
             })
-            console.log('selectFlavorOrColor',selectFlavorOrColor)
-            console.log('selectWeightOrSize',selectWeightOrSize)
-            
+            // console.log('selectFlavorOrColor',selectFlavorOrColor)
+            // console.log('selectWeightOrSize',selectWeightOrSize)
             productPrice.innerText = selectedProduct.price.toLocaleString()
-            // console.log('xxxxxxxx',selectedProduct)
-            productID = selectedProduct.product_id
-            // console.log('productID',productID)
+            console.log('xxxxxxxx',selectedProduct)
+            console.log('xxxxxxxx',selectedProduct.product_id)
+            
+            productID = selectedProduct.product_id || null
+            console.log('productID',productID)
             $('#price').removeClass("d-none")
-
         }
+
         /**************************************************************************************************************/
         let allFlavorOrColorInputs = document.querySelectorAll('.flavorOrColorArea input[type="radio"]')
         allFlavorOrColorInputs.forEach(input => {
@@ -379,15 +351,12 @@ window.onload = ()=>{
 
             let allFlavorOrColorInputs = document.querySelectorAll('.flavorOrColorArea input[type="radio"]')
             let allWeightOrSizeInputs = document.querySelectorAll('.weightOrSizeArea input[type="radio"]') 
+            // 對所有款式檢查，如果沒有
             allFlavorOrColorInputs.forEach((input)=>{
-                // 檢查是否有任意產品的 flavorOrColor 屬性值與該按鈕的值匹配，且其 weightOrSize 屬性值與當前選擇的重量或尺寸值 (selectedWeightOrSizeValue) 匹配。
-                // input.disabled = !products.some((product)=>{ 
+                // 檢查是否有任意產品的 flavorOrColor 屬性值與該按鈕的值匹配，且其 weightOrSize 屬性值與當前選擇的重量或尺寸值匹配。
+                console.log('allFlavorOrColorInputs',input)
                 let flag = true //預設所有選項禁用
                 products.forEach((product)=>{ 
-                    // return product[flavorOrColor] === input.value && product[weightOrSize] === selectWeightOrSizeValue 
-                    // 資料庫寵物睡窩[水上樂園] === input選擇水上樂園 && (資料庫寵物睡窩[2XL找不到]!undefined === )
-                    // true && 
-                    // console.log(product[flavorOrColor],"===",input.value,'&& (',!selectWeightOrSizeValue,"||",product[weightOrSize],'=== ' ,selectWeightOrSizeValue,")")
                     // 資料庫寵物睡窩[水上樂園] === input選擇水上樂園 
                     if(product[flavorOrColor] === input.value){
                         // 且沒有被選擇的size || 資料庫寵物睡窩[XL] ==== 選擇的XL
@@ -420,15 +389,19 @@ window.onload = ()=>{
                 // console.log('input.disabled',input.disabled)
             })
         }
+        // 點選加入購物車
         addCartBtn.onclick = ()=>{
-            getProductInfo(localStorage.getItem("uid"),productID,currentQuantity ? currentQuantity : pdQuantity.value)
-            queryQuantity(localStorage.getItem("uid"))
+            if(!localStorage.getItem("uid")){
+                showMsg('尚未登入')
+            }else{
+                getProductInfo(localStorage.getItem("uid"), productID, currentQuantity ? currentQuantity : pdQuantity.value)
+                queryQuantity(localStorage.getItem("uid"))
+            }
         }    
      
     })
     .catch(error => {
         console.error('Error:', error);
-        
     });
     
 }
