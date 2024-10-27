@@ -3,24 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\ProductWarehouse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+// use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class WarehouseController extends Controller
 {
     function show(Request $request){
         $productID = $request->input('productID');
-        $products = DB::select("SELECT p.product_id,CONCAT_WS(' / ', nullif(ps.series_name,''),nullif(flavor,''),
-                                nullif(weight,''),nullif(size,''),nullif(style,'')) AS full_name
-                                FROM product p
-                                JOIN product_series ps 
-                                ON p.series_ai_id = ps.series_ai_id
-                                WHERE p.product_id = ? ",[$productID]);
-        if(count($products) > 0){
+        // $products = DB::select("SELECT p.product_id,CONCAT_WS(' / ', nullif(ps.series_name,''),nullif(flavor,''),
+        //                         nullif(weight,''),nullif(size,''),nullif(style,'')) AS full_name
+        //                         FROM product p
+        //                         JOIN product_series ps 
+        //                         ON p.series_ai_id = ps.series_ai_id
+        //                         WHERE p.product_id = ? ",[$productID]);
+        $product = Product::with('series')->where('product_id',$productID)->first();
+        Log::info($product);
+        // dd($ooo->toArray());
+        
+        if(!is_null($product)){
             // Log::info('$products[0]',['陣列',$products[0]]);
-            return response()->json($products[0]);
+            // array_filter默認過濾掉為假(空字串/null等)的值
+            $productName = implode('/',array_filter([
+                $product->series->series_name,
+                $product->flavor ?? '',
+                $product->weight ?? '',
+                $product->size ?? '',
+                $product->style ?? ''
+            ]));
+            Log::info($productName);
+
+            return response()->json(["productName" => $productName]);
         }else{
             return response()->json(["error" => "查無此產品"]);
         }

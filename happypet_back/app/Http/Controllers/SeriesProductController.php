@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\Product;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,7 @@ class SeriesProductController extends Controller
         // Cannot use object of type stdClass as array ，解決↓ (編碼在解碼為Array)
         // $categories = json_decode(json_encode($categories), true); //DB::select查詢出來是stdClass要轉換
         $categories = ProductCategory::all(['category_id','description']);
-        Log::info('categories',['categories',$categories]);
+        // Log::info('categories',['categories',$categories]);
 
         $categoryArr = [];
         foreach ($categories as $category) {
@@ -29,21 +31,29 @@ class SeriesProductController extends Controller
     }
     // 修改頁面的查詢
     public function show($seriesID = null){
-        $seriesProduct = DB::select("SELECT * FROM product_series ps 
-                                    JOIN product_seriesimg psi 
-                                    ON ps.series_id  = psi.series_id
-                                    WHERE ps.series_id = ?",[$seriesID]);
-        // 原本圖片是BLOB 轉成 base64 (&$spdImg => 傳址，直接修改值會影響原本變數)
-        foreach($seriesProduct as &$spdImg){
-            // print_r($spdImg);
-            if(isset($spdImg->img)){
-                $mime_type = (new finfo(FILEINFO_MIME_TYPE))->buffer($spdImg->img);
-                // Log::info("mime_type: " . $mime_type);
-                $spdImg->img = base64_encode($spdImg->img);
-                $src = "data:{$mime_type};base64,{$spdImg->img}";
-                $spdImg->img = $src;
-            }
-        };
+   
+        // $seriesProduct = DB::select("SELECT * FROM product_series ps 
+        //                             JOIN product_seriesimg psi 
+        //                             ON ps.series_id  = psi.series_id
+        //                             WHERE ps.series_id = ?",[$seriesID]);
+        $seriesProduct = ProductSeries::with('images') // 使用 with 方法來預載關聯的圖片
+                                    ->where('series_id', $seriesID) // 根據系列 ID 過濾
+                                    ->get();
+      
+                                    // ->first(); //first()查出來前端會無法forEach，而是要使用物件直接訪問
+        // 原本圖片是BLOB 轉成 base64 (&spd => 傳址，直接修改值會影響原本變數)
+        // foreach($seriesProduct as &$spdImg){
+        //     // print_r($spdImg);
+        //     if(isset($spdImg->img)){
+        //         $mime_type = (new finfo(FILEINFO_MIME_TYPE))->buffer($spdImg->img);
+        //         // Log::info("mime_type: " . $mime_type);
+        //         $spdImg->img = base64_encode($spdImg->img);
+        //         $src = "data:{$mime_type};base64,{$spdImg->img}";
+        //         $spdImg->img = $src;
+        //     }
+        // };
+     
+
         #region 測試儲存路徑 
         // $seriesProduct2 = DB::select("SELECT * FROM  product_series ps 
         //                             JOIN product_seriesimg psi 
@@ -53,12 +63,24 @@ class SeriesProductController extends Controller
         // $seriesProduct2 = json_decode(json_encode($seriesProduct2), true);
         #endregion
 
-        if(empty($seriesProduct)){
+        if($seriesProduct->isEmpty()){
+        // if(empty($seriesProduct)){
             return response()->json([
                 'message'=>"查無此系列編號",
             ]);
         }else{
-            Log::info('系列產品查詢結果',['seriesProduct'=>empty($seriesProduct)]);
+            //ORM查出來不像sql語句的join查出來一樣是扁平的資料，而是又有第二層，所以需要兩個for loop
+            foreach($seriesProduct as &$spd){
+                // print_r($spd);
+                foreach ($spd->images as &$imgs) {
+                    if(isset($imgs->img)){
+                        $mime_type = (new finfo(FILEINFO_MIME_TYPE))->buffer($imgs->img);
+                        // Log::info("mime_type: " . $mime_type);
+                        $imgs->img = base64_encode($imgs->img);
+                        $imgs->img ="data:{$mime_type};base64,{$imgs->img}";
+                    }
+                }
+            };
             return response()->json([
                 'seriesProduct'=>$seriesProduct,
                 // '$seriesProduct2'=>$seriesProduct2
@@ -98,10 +120,10 @@ class SeriesProductController extends Controller
             $description4 = $request->input('description4');
             $description5 = $request->input('description5');
             $coverimg = $request->file('coverimg');
-            $imgs = $request->file('imgs');
+            $seriesImgs = $request->file('imgs');
             $descimgs = $request->file('descimgs');
             // 驗證輸入的值，並返回錯誤給前端
-            $validateError = $this->inputValidation($pdSeries,$category,$pdName,$description1,$imgs);
+            $validateError = $this->inputValidation($pdSeries,$category,$pdName,$description1,$seriesImgs);
             if ($validateError) {
                 DB::rollBack();
                 return response()->json(["error" => $validateError]);
@@ -165,12 +187,12 @@ class SeriesProductController extends Controller
 
 
             // 處理其他圖片(8張)
-            Log::info("imgs的if有效",["imgs"=>$imgs]);
-            if ($imgs !==null && count($imgs) <= 8){
+            Log::info("imgs的if有效",["imgs"=>$seriesImgs]);
+            if ($seriesImgs !==null && count($seriesImgs) <= 8){
                 Log::info("imgs的if有效");
-                foreach ($imgs as $img) {
-                    if ($img->isValid()) {
-                        $fileContent = $img->get();
+                foreach ($seriesImgs as $seriesImg) {
+                    if ($seriesImg->isValid()) {
+                        $fileContent = $seriesImg->get();
                         Log::info("其他圖片有效，檔案大小: " . strlen($fileContent));
                         // DB::insert("INSERT INTO product_seriesimg(series_id,img,pic_category_id,create_date)
                         //             VALUES(?,?,?,NOW())",[$pdSeries, $fileContent, 2]);
@@ -211,7 +233,7 @@ class SeriesProductController extends Controller
                 return response()->json(["error"=>"敘述圖片至少上傳一張"]);
             }
             // $this->coverimgValidation($coverimg,$pdSeries);
-            // $this->otherimgsValidation($imgs,$pdSeries);
+            // $this->otherimgsValidation($seriesImgs,$pdSeries);
             // $this->descimgsValidation($descimgs,$pdSeries);
             DB::commit();
             return response()->json(["message" => "產品系列新增成功"]);
@@ -234,18 +256,30 @@ class SeriesProductController extends Controller
             $description4 = $request->input('description4');
             $description5 = $request->input('description5');
             $coverimg = $request->file('coverimg');
-            $imgs = $request->file('imgs');
+            $seriesImgs = $request->file('imgs');
             $descimgs = $request->file('descimgs');
             // 驗證輸入的值，並返回錯誤給前端
-            $validateError = $this->inputValidation($pdSeries,$category,$pdName,$description1,$imgs);
+            $validateError = $this->inputValidation($pdSeries,$category,$pdName,$description1,$seriesImgs);
             if ($validateError) {
                 DB::rollBack();
                 return response()->json(["error" => $validateError]);
             };
-
-            $n = DB::update("UPDATE product_series 
-                    SET series_id = ? ,category_id = ?,series_name = ?,description1 = ?,description2 = ?,description3 = ?,description4 = ?,description5 = ?,update_date = Now()
-                    WHERE series_id = ?",[$pdSeries,$category,$pdName,$description1,$description2,$description3,$description4,$description5,$pdSeries]);
+            $updateResult = ProductSeries::where('series_id', $pdSeries)
+                        ->update([
+                            'series_id' => $pdSeries,
+                            'category_id' => $category,
+                            'series_name' => $pdName,
+                            'description1' => $description1,
+                            'description2' => $description2,
+                            'description3' => $description3,
+                            'description4' => $description4,
+                            'description5' => $description5,
+                            'update_date' => now(),
+                        ]);
+            
+            // $n = DB::update("UPDATE product_series 
+            //         SET series_id = ? ,category_id = ?,series_name = ?,description1 = ?,description2 = ?,description3 = ?,description4 = ?,description5 = ?,update_date = Now()
+            //         WHERE series_id = ?",[$pdSeries,$category,$pdName,$description1,$description2,$description3,$description4,$description5,$pdSeries]);
 
             if(!empty($coverimg)){
                 if ($coverimg->isValid() ){
@@ -259,21 +293,21 @@ class SeriesProductController extends Controller
                             'series_id' => $pdSeries,
                             'img' => $fileContent,
                             'update_date' => now()
-                    ]);
+                        ]);
                 }else{
                     DB::rollBack();
                     return response()->json(["error"=>"封面圖片上傳失敗"]);
                 }
             }
             
-            if (!empty($imgs)){
-                if(count($imgs) <= 8){
+            if (!empty($seriesImgs)){
+                if(count($seriesImgs) <= 8){
                     ProductSeriesImg::where('series_id', $pdSeries)
                         ->where('pic_category_id', 2)
                         ->delete();
-                    foreach ($imgs as $img) {
-                        if ($img->isValid()) {
-                            $fileContent = $img->get();
+                    foreach ($seriesImgs as $seriesImg) {
+                        if ($seriesImg->isValid()) {
+                            $fileContent = $seriesImg->get();
                             ProductSeriesImg::create([
                                 'series_id' => $pdSeries,
                                 'img' => $fileContent,
@@ -316,8 +350,8 @@ class SeriesProductController extends Controller
                 }
             }
 
-            Log::info("我是修改:$n " , ['$n'=>$n]);
-            if($n > 0){
+            Log::info("我是修改:$updateResult " , ['$updateResult'=>$updateResult]);
+            if($updateResult > 0){
                 DB::commit();
                 return response()->json(["message" => "產品修改成功！"]);
             }else{
@@ -333,7 +367,7 @@ class SeriesProductController extends Controller
     }
    
 
-    private function inputValidation($pdSeries,$category,$pdName,$description1,$imgs){
+    private function inputValidation($pdSeries,$category,$pdName,$description1,$seriesImgs){
         if(empty($pdSeries)){ 
             return "產品系列編號不可為空"; 
         }else if(strlen($pdSeries) != 11){
@@ -360,13 +394,13 @@ class SeriesProductController extends Controller
     //         return response()->json(["error"=>"封面圖片上傳失敗"]);
     //     }
     // }
-    // private function otherimgsValidation($imgs,$pdSeries){
-    //     Log::info("imgs的if有效",["imgs"=>$imgs]);
-    //     if ($imgs && count($imgs) <= 8){
+    // private function otherimgsValidation($seriesImgs,$pdSeries){
+    //     Log::info("imgs的if有效",["imgs"=>$seriesImgs]);
+    //     if ($seriesImgs && count($seriesImgs) <= 8){
     //         Log::info("imgs的if有效");
-    //         foreach ($imgs as $img) {
-    //             if ($img->isValid()) {
-    //                 $fileContent = $img->get();
+    //         foreach ($seriesImgs as $seriesImg) {
+    //             if ($seriesImg->isValid()) {
+    //                 $fileContent = $seriesImg->get();
     //                 Log::info("其他圖片有效，檔案大小: " . strlen($fileContent));
     //                 DB::insert("INSERT INTO product_seriesimg(series_id,img,pic_category_id,create_date)
     //                             VALUES(?,?,?,NOW())",[$pdSeries, $fileContent, 2]);

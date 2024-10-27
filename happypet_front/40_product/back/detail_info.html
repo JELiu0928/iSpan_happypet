@@ -352,9 +352,11 @@
                                 console.log('productproductproduct',product)
 
                                 myProduct.current = product
-                                if(product.length>0){
+                                if(product.length > 0){
+                                    console.log('myProduct.current',myProduct.current)
+                                    console.log('名字',myProduct.current[0].series_name)
                                     setProductArr(myProduct.current)
-                                    setSeriesName(myProduct.current[0].series_name)
+                                    setSeriesName(myProduct.current[0].series.series_name)
                                 }else{
                                     showMsg('查無系列編號')
                                 }

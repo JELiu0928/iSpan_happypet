@@ -126,7 +126,8 @@ window.onload = function(){
                 // return response.text()   //圖片
                 return response.json()  //陣列
             })
-            .then(products=>{
+            // .then(({data:products})=>{
+            .then((products)=>{
                 console.log('/product/{c} ===>',products)
                 let oneSeries = new Set()
                 let seriesPriceObj = {};
@@ -231,15 +232,22 @@ window.onload = function(){
 
             let oneSeries = new Set()
             let seriesPriceObj = {};
-            uniqueSeriesAndPriceRange(result,oneSeries,seriesPriceObj)
+            // uniqueSeriesAndPriceRange(result,oneSeries,seriesPriceObj)
+            for(let i = 0;i<=result.length-1;i++){
+                uniqueSeriesAndPriceRange(result[i].pd_images_from_view ,oneSeries,seriesPriceObj)
+
+            }
 
             // let priceRange = seriesPriceObj[series_ai_id].min == seriesPriceObj[series_ai_id].max ? `${seriesPriceObj[series_ai_id].min}` : `${seriesPriceObj[series_ai_id].min} ~ ${seriesPriceObj[series_ai_id].max}`
             // result.forEach((searchProduct)=>{
             oneSeries.forEach((SerieID)=>{
+                console.log('oneSeries=>set->',oneSeries)
                 let searchProduct = result.find(pd=> pd.series_ai_id === SerieID)
-                
-                let {series_ai_id,series_name,cover_img,price,category_id} = searchProduct
+                console.log('searchProduct',searchProduct)
+                // let {series_ai_id,series_name,cover_img,category_id} = searchProduct
+                let {series_ai_id,series_name,pd_images_from_view, category_id} = searchProduct
                 // console.log('series_id ======',series_id)
+                let coverImg = pd_images_from_view[0].cover_img
                 let productItem = document.createElement('div')
                 let priceRange = seriesPriceObj[series_ai_id].min == seriesPriceObj[series_ai_id].max ? `${seriesPriceObj[series_ai_id].min}` : `${seriesPriceObj[series_ai_id].min} ~ ${seriesPriceObj[series_ai_id].max}`
                 // let priceRange = price
@@ -247,10 +255,10 @@ window.onload = function(){
                 // productContainer.innerHTML = ""
 
                 
-                productItem.innerHTML = `
+                productItem.innerHTML += `
                     <a href="http://localhost/happypet/happypet_front/40_product/front/product_item.html?category=${category_id}&sID=${series_ai_id}" data-seriesID="${series_ai_id}">
                         <div class="img_wrapper">
-                            <img src="${cover_img}" alt="" />
+                            <img src="${coverImg}" alt="" />
                         </div>
                         <p>${series_name}</p>
                     </a>
@@ -323,4 +331,27 @@ window.onload = function(){
             changeBanner(event.state.category)
         }
     }
+
+
+    // $('.pageBtn')
+    // function fetchPageProducts(page){
+    //     $.ajax({
+    //         url:`/api/products/${categoryID}?page=${page}`,
+    //         method:'GET'
+    //     }).done((res)=>{
+    //         console.log('分頁回傳',res)
+    //     }).fail((err)=>{
+    //         console.log('分頁error',err)
+    //     })
+    // }
+    // function updatePage(currentPage,lastPage){
+
+    //     let prevbtn = $('<button>').text('<').prop('disable',currentPage === 1)
+    //     prevbtn.on('click',()=>{
+    //         if(currentPage > 1){
+    //             console.log(currentPage)
+    //         }
+    //     })
+    // }
+
 }

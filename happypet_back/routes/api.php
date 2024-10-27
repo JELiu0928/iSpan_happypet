@@ -48,6 +48,7 @@ Route::prefix('/product_back/detail')->group(function () {
 
 // 查詢種類(狗狗、貓貓專區 product.html)
 Route::get('/product/{category}',[ProductCategoryController::class,'index']);
+// Route::get('/product/{category}',[ProductCategoryController::class,'testPage']);
 
 // 查詢此產品資訊(product_item.html)
 Route::get('/product/{c}/{seriesProduct}',[ProductItemController::class,'index']);

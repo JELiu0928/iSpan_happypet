@@ -178,7 +178,8 @@
                     // success: function(res) {
                         console.log(res);
                         setQuerying(false);
-                        res.full_name ? setProductName(res.full_name) : setProductName(res.error)
+                        // res.full_name ? setProductName(res.full_name) : setProductName(res.error)
+                        res.productName ? setProductName(res.productName) : setProductName(res.error)
                     // }
                 }).fail((e)=> console.log(e))
                 // fetch(`http://localhost/happypet/happypet_back/public/api/product_back/warehouse`,{

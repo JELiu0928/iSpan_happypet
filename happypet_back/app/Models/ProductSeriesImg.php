@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductSeriesImg extends Model
 {
@@ -18,4 +19,14 @@ class ProductSeriesImg extends Model
         'update_date',     
     ];
     public $timestamps = false;
+
+    public function series():BelongsTo{
+        // img多：series一
+        return $this->belongsTo(
+            ProductSeries::class,
+            'series_id', //img外鍵
+            'series_id' //ps主鍵
+        ); 
+    }
+    
 }

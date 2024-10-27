@@ -50,10 +50,10 @@ window.onload = ()=>{
         return response.json()  //陣列
     })
     .then(data=>{
-        // console.log(data)
+        console.log(data)
         let {products,productImgs,categoryName} = data
         // console.log('第一個',products)
-        // console.log('第一個',productImgs)
+        console.log('第一個',productImgs)
         // console.log('第一個',categoryName)
 
         // 過濾下架產品
@@ -83,7 +83,9 @@ window.onload = ()=>{
         let categoryID = goodsTitle.getAttribute('data-categoryid')
         $('.breadcrumb').find('a').eq(1).prop('href',`http://localhost/happypet/happypet_front/40_product/front/product.html?category=${categoryID}`)
        
-        productImgs.forEach((productImg,i)=>{
+        // ORM後會變兩層，取出images後for loop
+        productImgs[0].images.forEach((productImg,i)=>{
+            console.log('productImg',productImg)
             let {pic_category_id} = productImg
             if(pic_category_id == 1 || pic_category_id == 2){
                 let pdImg = $('<img>').prop('src',productImg.img)

@@ -126,26 +126,46 @@
                     $('#categoryOptions').val(category_id)
                     $('input[name^="description"]').each((i,elem)=>{
                         // console.log(i,'----------',elem)
-                        console.log(products,products["description1"])
+                        // console.log(products,products["description1"])
                         descKey = `description${i+1}` 
                         $(elem).val(products[descKey])
                     })
-                    // console.log('pic_category_id',pic_category_id)
-                    switch (pic_category_id) {
-                        case 1:
-                            showCoverImg.innerHTML = `<img src="${seriesPD.img}">`
-                            break;
-                        case 2:
-                            showOthersImgs.innerHTML += `<img src="${seriesPD.img}">`
-                            break;
-                        case 3:
-                            showDescImgs.innerHTML += `<img src="${seriesPD.img}">`
-                            break;
-                        default:
-                            break;
-                    }
-                })
+                    // console.log('seriesPD',seriesPD)
+                    seriesPD.images.forEach((image)=>{
+                        // console.log('image',image.img)
+                        switch (image.pic_category_id) {
+                            case 1:
+                                $('#showCoverImg').append(`<img src="${image.img}">`)
+                                break;
+                            case 2:
+                                $('#showOthersImgs').append(`<img src="${image.img}">`)
+                                break;
+                            case 3:
+                                $('#showDescImgs').append(`<img src="${image.img}">`)
+                                break;
+                            default:
+                                break;
+                            }
+                        })
+                    })
             })
+
+            // switch (pic_category_id) {
+            //     case 1:
+            //         // $('#showCoverImg').append(`<img src="${event.target.result}">`)
+            //         showCoverImg.innerHTML = `<img src="${seriesPD.img}">`
+            //         break;
+            //     case 2:
+            //         showOthersImgs.innerHTML += `<img src="${seriesPD.img}">`
+            //         break;
+            //     case 3:
+            //         showDescImgs.innerHTML += `<img src="${seriesPD.img}">`
+            //         break;
+            //     default:
+            //         break;
+            //     }
+            // })
+
             // fetch(`http://localhost/happypet/happypet_back/public/api/product_back/info/show/${seriesID}`,{
             //     method:'post',
             // })

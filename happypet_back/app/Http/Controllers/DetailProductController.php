@@ -6,15 +6,29 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\ProductSeries;
+use App\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
+
 class DetailProductController extends Controller
 {
     function index(Request $request){
         $pdSeries = $request->query('pdSeries'); //?查詢字符串用query
         Log::info('pdSeries變數',['pdSeries',$pdSeries]);
-        $product = DB::select("SELECT * FROM product p 
-                    JOIN product_series ps 
-                    ON p.series_ai_id = ps.series_ai_id 
-                    WHERE series_id = ?",[$pdSeries]);
+
+        $product = Product::with('series')
+            // whereHas 用於篩選有符合特定條件的關聯資料的記錄
+            // use 關鍵字用於將外部變數帶入閉包函數範圍內
+            ->whereHas('series',function(Builder $query) use ($pdSeries){
+                $query->where('series_id',$pdSeries);
+            })->get();
+        
+        // $product = DB::select("SELECT * FROM product p 
+        //             JOIN product_series ps 
+        //             ON p.series_ai_id = ps.series_ai_id 
+        //             WHERE series_id = ?",[$pdSeries]);
+
+       
+        Log::info('product變數',['product',$product]);
         return response()->json(["product" => $product ]);
     }
     // show：查詢單一結果
@@ -53,8 +67,8 @@ class DetailProductController extends Controller
                 'prices' => $prices,
                 'GTINs' => $GTINs
             ]);
-            Log::info('$request:', ["request = " => $request->all()]); 
-            Log::info('全產品ID', ['fullPdIDs' => $fullPdIDs]);
+            // Log::info('$request:', ["request = " => $request->all()]); 
+            // Log::info('全產品ID', ['fullPdIDs' => $fullPdIDs]);
             
             // 開啟事務
             DB::beginTransaction();
@@ -77,17 +91,28 @@ class DetailProductController extends Controller
                 }
                 
                 // 回傳布林值
-                $insertSuccess = DB::insert('INSERT INTO product(series_ai_id,product_id,flavor,weight,size,style,price,GTIN,create_date)
-                        VALUES(?,?,?,?,?,?,?,?,NOW())',[
-                            $series_num->series_ai_id,
-                            $fullPdID,
-                            $flavors[$index] ?? '',
-                            $weights[$index] ?? '',
-                            $sizes[$index] ?? '',
-                            $colors[$index] ?? '',
-                            $prices[$index] ?? '',
-                            $GTINs[$index] ?? '',
-                        ]);
+                // $insertSuccess = DB::insert('INSERT INTO product(series_ai_id,product_id,flavor,weight,size,style,price,GTIN,create_date)
+                //         VALUES(?,?,?,?,?,?,?,?,NOW())',[
+                //             $series_num->series_ai_id,
+                //             $fullPdID,
+                //             $flavors[$index] ?? '',
+                //             $weights[$index] ?? '',
+                //             $sizes[$index] ?? '',
+                //             $colors[$index] ?? '',
+                //             $prices[$index] ?? '',
+                //             $GTINs[$index] ?? '',
+                //         ]);
+                $insertSuccess = Product::create([
+                    'series_ai_id' => $series_num->series_ai_id,
+                    'product_id' => $fullPdID,
+                    'flavor' => $flavors[$index] ?? '',
+                    'weight' => $weights[$index] ?? '',
+                    'size' => $sizes[$index] ?? '',
+                    'style' => $colors[$index] ?? '',
+                    'price' => $prices[$index] ?? '',
+                    'GTIN' => $GTINs[$index] ?? '',
+                    'create_date' => now(),
+                ]);
                 
                 Log::info('異動筆數:', ["異動筆數" => $insertSuccess]); // 日誌查詢異動筆數
                 
@@ -98,7 +123,6 @@ class DetailProductController extends Controller
                 return response()->json(["message" => "產品新增成功"]);
             }
             // Log::info('Insert:', ["inserted_count" => $insertedCount]);
-
             // echo json_encode(["message" => "產品系列新增成功"]);
         }catch(\Exception $e) {
             Log::error($e->getMessage());
@@ -141,16 +165,26 @@ class DetailProductController extends Controller
                     DB::rollBack();
                     return response()->json(["error" => $validateError]);
                 }
-                $updateSuccess = DB::update("UPDATE product
-                                SET flavor = ?, weight = ?, size = ?,style = ? ,price = ?, GTIN = ?, update_date = Now()
-                                WHERE product_id = ? ",[
-                                        $flavors[$index] ?? '',
-                                        $weights[$index] ?? '',
-                                        $sizes[$index] ?? '',
-                                        $colors[$index] ?? '',
-                                        $prices[$index] ?? '',
-                                        $GTINs[$index] ?? '',
-                                        $fullPdID
+                // $updateSuccess = DB::update("UPDATE product
+                //                 SET flavor = ?, weight = ?, size = ?,style = ? ,price = ?, GTIN = ?, update_date = Now()
+                //                 WHERE product_id = ? ",[
+                //                         $flavors[$index] ?? '',
+                //                         $weights[$index] ?? '',
+                //                         $sizes[$index] ?? '',
+                //                         $colors[$index] ?? '',
+                //                         $prices[$index] ?? '',
+                //                         $GTINs[$index] ?? '',
+                //                         $fullPdID
+                //                     ]);
+                $updateSuccess = Product::where('product_id', $fullPdID)
+                                    ->update([
+                                        'flavor' => $flavors[$index] ?? '',
+                                        'weight' => $weights[$index] ?? '',
+                                        'size' => $sizes[$index] ?? '',
+                                        'style' => $colors[$index] ?? '',
+                                        'price' => $prices[$index] ?? '',
+                                        'GTIN' => $GTINs[$index] ?? '',
+                                        'update_date' => now(),
                                     ]);
             }
             if($updateSuccess){
